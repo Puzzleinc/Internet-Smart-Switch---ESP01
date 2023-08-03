@@ -62,6 +62,7 @@ void clockCounter(unsigned long currentMillis);
 void timerFunction();
 void telegramOperation(unsigned long currentTime);
 void telegramKeyboard();
+void saklarManual();
 
 
 void setup() {
@@ -266,12 +267,10 @@ void telegramOperation(unsigned long currentMillis) {
 				String inputWaktu = msg.text;
 
         uint8_t pembatas1 = inputWaktu.indexOf("#");
-        uint8_t pembatas2 = inputWaktu.indexOf("-");
-        uint8_t pembatas3 = inputWaktu.lastIndexOf("#");
 
         uint8_t waktu1Awal = inputWaktu.substring(0, pembatas1).toInt();
         uint8_t waktu1Akhir = inputWaktu.substring(pembatas1+1, inputWaktu.length()).toInt();
-        
+
         if ((waktu1Awal < waktu1Akhir)) {
           File file = LittleFS.open("time.csv", "w");
 					//Write to the file
@@ -306,6 +305,8 @@ void telegramOperation(unsigned long currentMillis) {
 				// pushed "LIGHT ON" button...
 				digitalWrite(saklar, LOW);
 				// terminate the callback with an alert message
+        digitalWrite(saklar, HIGH);
+        // Untuk keluar sementara bisa dicoba panggil fungsi baru dan di loop di situ sampai ada instruksi masuk lagi dari telegram untuk keluar dari loop yang sudah ada
 				myBot.endQuery(msg.callbackQueryID, "Light on", true);
 			} else if (msg.callbackQueryData.equals(LIGHT_OFF_CALLBACK)) {
 				// pushed "LIGHT OFF" button...
