@@ -31,9 +31,6 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
   uint8_t waktu1Awal;
   uint8_t waktu1Akhir;
-  
-  uint8_t waktu2Awal;
-  uint8_t waktu2Akhir;
 
 // Clock variable
 unsigned long timeLast = 0;
@@ -113,7 +110,7 @@ void setup() {
 	file.close();
 
   // Get time setting from filesystem -----------------------
-	getTimesetting(waktu1Awal, waktu2Awal, waktu1Akhir, waktu2Akhir);
+	getTimesetting(waktu1Awal, waktu1Akhir);
 
 	//  Connecting to telegram -----------------------
 	myBot.setTelegramToken(token);
@@ -217,10 +214,10 @@ void clockCounter(unsigned long currentMillis) {
 void timerFunction() {
   // Fungsi timer utama
   for (int i=0; i<2; i++) {
-    if((hours >= waktu1Awal && hours <= waktu1Akhir-1) || (hours >= waktu2Awal && hours <= waktu2Akhir-1)) {
+    if(hours == waktu1Awal) {
         // Saklar menggunakan NORMALY CLOSED jadi logikanya dibalik, kalo high mati
         digitalWrite(saklar, LOW);
-      } else {
+      } else if(hours == waktu1Akhir) {
         digitalWrite(saklar, HIGH);
     }
   }
@@ -263,9 +260,9 @@ void telegramOperation(unsigned long currentMillis) {
           delay(150);
           digitalWrite(buzz, LOW);
           delay(150);
-        getTimesetting(waktu1Awal, waktu2Awal, waktu1Akhir, waktu2Akhir);
-				myBot.sendMessage(msg.sender.id, "Waktu Timer #1: " + String(waktu1Awal) + " sampai " + String(waktu1Akhir) + " - Waktu Timer #2: " + String(waktu2Awal) + " sampai " + String(waktu2Akhir));
-        } else {
+        getTimesetting(waktu1Awal, waktu1Akhir);
+				myBot.sendMessage(msg.sender.id, "Waktu Timer #1: " + String(waktu1Awal) + " sampai " + String(waktu1Akhir));
+      } else {
 				String inputWaktu = msg.text;
 
         uint8_t pembatas1 = inputWaktu.indexOf("#");
@@ -275,10 +272,7 @@ void telegramOperation(unsigned long currentMillis) {
         uint8_t waktu1Awal = inputWaktu.substring(0, pembatas1).toInt();
         uint8_t waktu1Akhir = inputWaktu.substring(pembatas1+1, inputWaktu.length()).toInt();
         
-        uint8_t waktu2Awal = inputWaktu.substring(pembatas2+1, inputWaktu.length()).toInt();
-        uint8_t waktu2Akhir = inputWaktu.substring(pembatas3+1, inputWaktu.length()).toInt();
-
-        if ((waktu1Awal < waktu1Akhir)||(waktu2Awal < waktu2Akhir)) {
+        if ((waktu1Awal < waktu1Akhir)) {
           File file = LittleFS.open("time.csv", "w");
 					//Write to the file
 					file.print(inputWaktu);
@@ -286,8 +280,8 @@ void telegramOperation(unsigned long currentMillis) {
 					//Close the file
 					file.close();
 
-					getTimesetting(waktu1Awal, waktu2Awal, waktu1Akhir, waktu2Akhir);
-					myBot.sendMessage(msg.sender.id, "Waktu Timer #1: " + String(waktu1Awal) + " sampai " + String(waktu1Akhir) + " - Waktu Timer #2: " + String(waktu2Awal) + " sampai " + String(waktu2Akhir));
+					getTimesetting(waktu1Awal, waktu1Akhir);
+					myBot.sendMessage(msg.sender.id, "Waktu Timer #1: " + String(waktu1Awal) + " sampai " + String(waktu1Akhir));
 					myBot.sendMessage(msg.sender.id, "Pengaturan tersimpan, harap mereset perangkat.....");
           // Indikator suara terima data
           digitalWrite(buzz, HIGH);
