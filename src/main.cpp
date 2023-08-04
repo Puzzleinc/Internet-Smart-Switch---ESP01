@@ -6,6 +6,7 @@
 
 #include "gettimesetting.h"
 #include "wificonnect.h"
+#include "timefunction.h"
 
 /* WIFI SSID & Password */
 const char* ssid;  // Enter SSID here
@@ -58,12 +59,9 @@ CTBotInlineKeyboard myKbd;   // reply keyboard object helper
 // Make function prototype
 void updateTime(unsigned long currentMillis);
 void showTime(unsigned long currentMillis);
-void clockCounter(unsigned long currentMillis);
 void timerFunction();
 void telegramOperation(unsigned long currentTime);
 void telegramKeyboard();
-void saklarManual();
-
 
 void setup() {
  /*  Common cathode led RGB */
@@ -147,10 +145,9 @@ void loop() {
   unsigned long currentMillis = millis() / 1000;  // the number of milliseconds that have passed since boot
   
   telegramOperation(currentMillis);
-  clockCounter(currentMillis);
+  clockCounter(currentMillis, previousMillis, seconds, minutes, hours, days);
   updateTime(currentMillis);
-  showTime(currentMillis);
-  timerFunction();
+  showTime(currentMillis, timeLast, intervalSec, secIndicator);
 }
 
 void updateTime(unsigned long currentMillis) {
@@ -162,53 +159,6 @@ void updateTime(unsigned long currentMillis) {
     seconds = timeClient.getSeconds();
     minutes = timeClient.getMinutes();
     hours = timeClient.getHours();
-  }
-}
-
-void showTime(unsigned long currentMillis) {
-  if (currentMillis - timeLast >= intervalSec) {
-    timeLast = currentMillis;
-
-    // Indikator waktu tiap detik led menyala
-    digitalWrite(secIndicator, HIGH);
-    delay(50);
-    digitalWrite(secIndicator, LOW);
-    delay(50);
-
-    // tampilkan waktu saat ini ke serial monitor
-    // timeClient.update();
-    // Serial.print("Waktu internal: ");
-    // Serial.print(days);
-    // Serial.print(":");
-    // Serial.print(hours);
-    // Serial.print(":");
-    // Serial.print(minutes);
-    // Serial.print(":");
-    // Serial.println(seconds);
-    // Serial.print(" -- ");
-    // Serial.println("Waktu internet : " + timeClient.getFormattedTime());
-  }
-}
-
-void clockCounter(unsigned long currentMillis) {
-  seconds = currentMillis - previousMillis;
-
-  //the number of seconds that have passed since the last time 60 seconds was reached.
-  if (seconds >= 60) {
-    previousMillis = currentMillis;
-    seconds = 0;
-    minutes = minutes + 1; 
-  }
-
-  //if one minute has passed, start counting milliseconds from zero again and add one minute to the clock.
-  if (minutes >= 60){
-    minutes = 0;
-    hours = hours + 1; 
-  }
-
-  if (hours == 24){
-    hours = 0;
-    days = days + 1; 
   }
 }
 
