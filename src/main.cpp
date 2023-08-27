@@ -34,10 +34,11 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org");
   uint8_t waktu1Akhir;
 
 // Clock variable
-unsigned long timeLast = 0;
-unsigned long previousMillis = 0;
-const unsigned long intervalDays = 2*24*60*60*1000; // 2 Days interval
-uint8_t const intervalSec = 5; // 2 Days interval
+unsigned long timeLast;
+unsigned long previousMillis;
+unsigned long updatetimeTemp; // Temporary time for updating saved time
+const unsigned long intervalDays = 24*60*60; // 1 Days interval 60sec*60min*24hour
+uint8_t const intervalSec = 5;
 
 // set your starting hour here, not below at int hour. This ensures accurate daily correction of time
 uint8_t seconds;
@@ -48,7 +49,8 @@ uint16_t days;
 /*  TELEGRAM BOT SETUP */
 CTBot myBot;
 TBMessage msg;
-String token = "5818046411:AAEv_uG0gr_Sn3eUncC5cMo3IkvBVsR73Pk";   // REPLACE myToken WITH YOUR TELEGRAM BOT TOKEN
+// String token = "5818046411:AAEv_uG0gr_Sn3eUncC5cMo3IkvBVsR73Pk";   // (my_kubot TOKEN) REPLACE myToken WITH YOUR TELEGRAM BOT TOKEN
+String token = "6438525941:AAGqB556_PuiyxSOMCnWD3HNunM9EBj0fMY";   // (puzzletesbot TOKEN)
 CTBotInlineKeyboard myKbd;   // reply keyboard object helper
 
 /* Init CTBot query */
@@ -81,8 +83,10 @@ void setup() {
   */
 
   /* WIFI KOS   */
-  ssid = "PinkTulip";  // Enter SSID here
-  password = "Bekasikota97";  // Enter Password here
+  // ssid = "PinkTulip";  // Enter SSID here
+  // password = "Bekasikota97";  // Enter Password here
+  ssid = "Puzzle24";  // Enter SSID here
+  password = "gzcmb94463";  // Enter Password here
   deviceName = "Smart Switch"; // DHCP Hostname (useful for finding device for static lease) 
 
 
@@ -152,9 +156,11 @@ void loop() {
 
 void updateTime(unsigned long currentMillis) {
   // update waktu ke server NTP
-  if (currentMillis - timeLast >= intervalDays) {
-    timeLast = currentMillis;
-    
+  if (currentMillis - updatetimeTemp >= intervalDays) {
+    updatetimeTemp = currentMillis;
+
+    timeClient.begin();
+    // Dapatkan waktu dan update ke variabel dari NTP Server -----------------------
     timeClient.update();
     seconds = timeClient.getSeconds();
     minutes = timeClient.getMinutes();
@@ -238,7 +244,7 @@ void telegramOperation(unsigned long currentMillis) {
           digitalWrite(buzz, LOW);
           delay(150);
         } else {
-          myBot.sendMessage(msg.sender.id, "Error, format waktu tidak valid atau menit ke 2 lebih kecil daripada menit ke 1");
+          myBot.sendMessage(msg.sender.id, "Error, keyword tidak ditemukan atau format waktu tidak valid (enit ke 2 lebih kecil daripada menit ke 1)");
           // Indikator suara terima data
           digitalWrite(buzz, HIGH);
           delay(150);
@@ -263,21 +269,6 @@ void telegramOperation(unsigned long currentMillis) {
 				digitalWrite(saklar, HIGH);
 				// terminate the callback with a popup message
 				myBot.endQuery(msg.callbackQueryID, "Light off", true);
-			} else if (msg.callbackQueryData.equals(RESET_CALLBACK)) {
-          digitalWrite(buzz, HIGH);
-          delay(150);
-          digitalWrite(buzz, LOW);
-          delay(150);
-          digitalWrite(buzz, HIGH);
-          delay(150);
-          digitalWrite(buzz, LOW);
-          delay(150);
-          digitalWrite(buzz, HIGH);
-          delay(150);
-          digitalWrite(buzz, LOW);
-          delay(150);
-          myBot.endQuery(msg.callbackQueryID, "Light off", true);
-				  // ESP.restart();
 			}
 		}
 	}
@@ -287,6 +278,5 @@ void telegramKeyboard() {
 	//  Creating Keyboard button class -----------------------
 	myKbd.addButton("Lampu Nyala", LIGHT_ON_CALLBACK, CTBotKeyboardButtonQuery);
 	myKbd.addButton("Lampu Mati", LIGHT_OFF_CALLBACK, CTBotKeyboardButtonQuery);
-	myKbd.addRow();
-  myKbd.addButton("Reset Device", RESET_CALLBACK, CTBotKeyboardButtonQuery);
+	// myKbd.addRow();
 }
